@@ -1,6 +1,6 @@
 from src.states.blogstate import BlogState
-
-
+from langchain_core.messages import SystemMessage, HumanMessage
+from src.states.blogstate import Blog
 
 class BlogNode:
     """
@@ -34,3 +34,39 @@ class BlogNode:
             system_message=prompt.format(topic=state["topic"])
             response=self.llm.invoke(system_message)
             return {"blog": {"title": state["blog"]["title"], "content": response.content}}
+        
+    def translation(self, state:BlogState):
+        """
+        Translate the blog to another language
+        """
+        translation_prompt="""
+        
+        Translate the following content into {current_language}:
+        - Maintain the original tone, style and formatting.
+        - Adapt cultural references and idioms to be appropriate for {current_language}.
+        
+        ORIGINAL CONTENT:
+        {blog_content}
+        
+        """
+        
+        blog_content=state["blog"]["content"]
+        message=[
+            HumanMessage(translation_prompt.format(current_language=state["current_language"],blog_content=blog_content))
+        ]
+        
+        translation_content = self.llm.with_structured_outputs(Blog).invoke(message)
+        
+        def route(self, state:BlogState):
+            return {"current_language": state["current_language"]}
+        
+        def route_decision(self, state:BlogState):
+            """
+            Route the content to the respective translation function
+            """
+            if state["current_language"] == "hindi":
+                return "hindi"
+            elif state["current_language"] == "french":
+                return "french"
+            else:
+                return state["current_language"]
