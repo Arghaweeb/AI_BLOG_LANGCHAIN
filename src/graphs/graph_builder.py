@@ -27,3 +27,14 @@ class GraphBuilder:
     def setup_graph(self,usecase):
         if usecase=="topic":
             self.build_topic_graph()
+            
+        return self.graph.compile()
+    
+    
+## Below code is for langsmith langraph studio
+
+llm=GroqLLM().get_llm()
+
+## Build the graph
+graph_builder=GraphBuilder(llm)
+graph=graph_builder.build_topic_graph().compile()
